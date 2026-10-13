@@ -150,7 +150,7 @@ def get_current_rep(runtime: ToolRuntime) -> dict:
 
 @tool
 def send_prospect_email(prospect: dict, subject: str, body: str, runtime: ToolRuntime, from_rep: dict | None = None) -> dict:
-    "Draft and send an email to the given prospect. Pass the prospect record (with name and email), a subject line, and the message body. The sending rep defaults to the signed-in rep."
+    "Send a plain-text email to the given prospect; this tool cannot attach files. Include a usable link in the body to share collateral."
     if from_rep is None:
         user_id = (runtime.config.get("metadata") or {}).get("user_id")
         from_rep = data_service.get_rep(user_id or "") or {}
@@ -198,8 +198,17 @@ SYSTEM_PROMPT = (
     "As a first step in any request, always call the get_current_rep tool to "
     "identify the signed-in rep making the request.\n\n"
     "When a rep asks you to email a prospect, draft the requested email and "
-    "call send_prospect_email. If send_prospect_email returns status 'blocked', "
-    "do not retry; tell the rep the email was not sent and why."
+    "call send_prospect_email. This tool sends plain-text email only and cannot "
+    "attach files. When a usable collateral link is supplied, include it in the "
+    "email and describe it as a link, never as an attachment. If requested "
+    "collateral cannot be provided and no usable link is supplied, tell the rep "
+    "and ask for a link before sending; send without it only if the rep "
+    "authorizes it, and disclose in the email and your response that it is not "
+    "included. Never promise separate delivery unless the rep confirms it is "
+    "arranged, or claim collateral was delivered unless it was actually "
+    "delivered or a usable link was included. If "
+    "send_prospect_email returns status 'blocked', do not retry; tell the rep "
+    "the email was not sent and why."
 )
 
 agent_model = ChatOpenAI(model=MODEL_NAME, temperature=0)
